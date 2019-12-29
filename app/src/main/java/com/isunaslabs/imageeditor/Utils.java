@@ -15,6 +15,11 @@ import com.isunaslabs.imageeditor.model.ImageToTrace;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
+    public static int imageWidth = 0;
+    public static int imageHeight = 0;
+    public static float labelTextSize = 0;
+
+
     public static void hideSystemUI(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             View view = activity.getWindow().getDecorView();
@@ -44,6 +49,9 @@ public class Utils {
                                          final String imgUrl,
                                          final int screenWidth,
                                          final BitmapLoadListener bitmapLoadListener) {
+
+        labelTextSize = context.getResources().getDimensionPixelSize(R.dimen.label_size);
+
         Thread bitmapLoaderThread = new Thread() {
             @Override
             public void run() {
@@ -73,6 +81,8 @@ public class Utils {
         int originalHeight = bitmap.getHeight();
         float ratio = originalWidth * 1f / originalHeight * 1f;
         int newHeight = (int) (desiredWidth / ratio);
+        imageWidth = desiredWidth;
+        imageHeight = newHeight;
         return Bitmap.createScaledBitmap(bitmap, desiredWidth, newHeight, false);
     }
 

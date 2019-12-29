@@ -30,10 +30,9 @@ public class DrawingPad extends SurfaceView {
     private ImageToTrace imageToTrace;
     private int layoutWidth = 0;
     private int layoutHeight = 0;
-    private Path drawingPath;
-    private Paint drawingPaint;
+    private Path tracingPath;
+    private Paint tracePaint;
     private Paint maskPaint;
-    private Paint labelPaint;
     private int maskHeight;
     private int imageHeight;
     private List<PointF> recentDrawnPoints;
@@ -62,7 +61,6 @@ public class DrawingPad extends SurfaceView {
 
     public void setPollutionCode(int pollutionCode) {
         this.pollutionCode = pollutionCode;
-        labelPaint.setColor(Utils.getLabelColor(pollutionCode));
     }
 
     public void setImageUrl(String imageUrl) {
@@ -77,22 +75,17 @@ public class DrawingPad extends SurfaceView {
     }
 
     private void initView() {
-        drawingPaint = new Paint();
-        drawingPaint.setAntiAlias(true);
-        drawingPaint.setStrokeJoin(Paint.Join.ROUND);
-        drawingPaint.setStrokeCap(Paint.Cap.ROUND);
-        drawingPaint.setColor(STROKE_COLOR);
-        drawingPaint.setStyle(Paint.Style.STROKE);
-        drawingPaint.setStrokeWidth(STROKE_WIDTH);
+        tracePaint = new Paint();
+        tracePaint.setAntiAlias(true);
+        tracePaint.setStrokeJoin(Paint.Join.ROUND);
+        tracePaint.setStrokeCap(Paint.Cap.ROUND);
+        tracePaint.setColor(STROKE_COLOR);
+        tracePaint.setStyle(Paint.Style.STROKE);
+        tracePaint.setStrokeWidth(STROKE_WIDTH);
 
         maskPaint = new Paint();
         maskPaint.setAntiAlias(true);
         maskPaint.setColor(Color.BLACK);
-
-        labelPaint = new Paint();
-        labelPaint.setAntiAlias(true);
-        labelPaint.setStrokeWidth(STROKE_WIDTH);
-        labelPaint.setStyle(Paint.Style.FILL);
 
     }
 
@@ -139,16 +132,21 @@ public class DrawingPad extends SurfaceView {
             canvas.drawCircle(traceHistory.getEstimatedCenter().x,
                     traceHistory.getEstimatedCenter().y, 15,
                     traceHistory.getLabelPaint());
-            canvas.drawLine(traceHistory.getEstimatedCenter().x,
+            /*canvas.drawLine(traceHistory.getEstimatedCenter().x,
                     traceHistory.getEstimatedCenter().y,
                     traceHistory.getLabelPosition().x,
                     traceHistory.getLabelPosition().y,
+                    traceHistory.getLabelPaint());*/
+
+            canvas.drawText("污染" + traceHistory.getPollutionCode(),
+                    traceHistory.getEstimatedCenter().x,
+                    traceHistory.getEstimatedCenter().y,
                     traceHistory.getLabelPaint());
         }
 
         //trace on the image in real time as the user moves his finger
-        if (drawingPath != null && userIsDrawing) {
-            canvas.drawPath(drawingPath, drawingPaint);
+        if (tracingPath != null && userIsDrawing) {
+            canvas.drawPath(tracingPath, tracePaint);
         }
 
         /*draw top and bottom masks*/
@@ -165,9 +163,9 @@ public class DrawingPad extends SurfaceView {
             case MotionEvent.ACTION_DOWN:
                 float xDown = event.getX();
                 float yDown = event.getY();
-                drawingPath = new Path();
-                drawingPath.moveTo(xDown, yDown);
-                drawingPath.lineTo(xDown, yDown);
+                tracingPath = new Path();
+                tracingPath.moveTo(xDown, yDown);
+                tracingPath.lineTo(xDown, yDown);
                 recentDrawnPoints = new ArrayList<>();
                 recentDrawnPoints.add(new PointF(xDown, yDown));
                 postInvalidate();
@@ -175,7 +173,7 @@ public class DrawingPad extends SurfaceView {
             case MotionEvent.ACTION_MOVE:
                 float xMove = event.getX();
                 float yMove = event.getY();
-                drawingPath.lineTo(xMove, yMove);
+                tracingPath.lineTo(xMove, yMove);
                 recentDrawnPoints.add(new PointF(xMove, yMove));
                 userIsDrawing = true;
                 postInvalidate();
@@ -183,10 +181,10 @@ public class DrawingPad extends SurfaceView {
             case MotionEvent.ACTION_UP:
                 float xUp = event.getX();
                 float yUp = event.getY();
-                drawingPath.lineTo(xUp, yUp);
+                tracingPath.lineTo(xUp, yUp);
                 recentDrawnPoints.add(new PointF(xUp, yUp));
                 traceHistoryList.add(new TraceHistory(recentDrawnPoints,
-                        STROKE_COLOR, STROKE_WIDTH, pollutionCode));
+                        tracePaint, pollutionCode));
                 userIsDrawing = false;
                 postInvalidate();
                 performClick();
