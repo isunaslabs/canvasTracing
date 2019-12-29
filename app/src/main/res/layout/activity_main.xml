@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorAccent"
+    tools:context=".MainActivity">
+
+    <com.isunaslabs.imageeditor.customview.DrawingPad
+        android:id="@+id/drawing_pad"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/pollution_one"
+        android:background="#ffffff"/>
+
+    <Button
+        android:id="@+id/pollution_one"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pollution_one"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/pollution_two"
+        android:layout_marginStart="@dimen/margin_1"/>
+    <Button
+        android:id="@+id/pollution_two"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pollution_two"
+        app:layout_constraintStart_toEndOf="@id/pollution_one"
+        app:layout_constraintEnd_toStartOf="@id/pollution_three"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+    <Button
+        android:id="@+id/pollution_three"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pollution_three"
+        app:layout_constraintStart_toEndOf="@id/pollution_two"
+        app:layout_constraintEnd_toStartOf="@id/pollution_four"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+    <Button
+        android:id="@+id/pollution_four"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pollution_four"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/pollution_three"
+        android:layout_marginEnd="@dimen/margin_1"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
