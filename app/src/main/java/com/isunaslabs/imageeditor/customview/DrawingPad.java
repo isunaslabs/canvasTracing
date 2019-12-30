@@ -42,6 +42,7 @@ public class DrawingPad extends SurfaceView {
     private int pollutionCode = 1;
     private String imageUrl = "";
     private boolean userIsDrawing = false;
+    private Paint labelTextBackgroundPaint;
 
 
     public DrawingPad(Context context) {
@@ -87,6 +88,12 @@ public class DrawingPad extends SurfaceView {
         maskPaint.setAntiAlias(true);
         maskPaint.setColor(Color.BLACK);
 
+        labelTextBackgroundPaint = new Paint();
+        labelTextBackgroundPaint.setAntiAlias(true);
+        labelTextBackgroundPaint.setColor(Color.BLACK);
+        labelTextBackgroundPaint.setStrokeJoin(Paint.Join.ROUND);
+        labelTextBackgroundPaint.setStrokeCap(Paint.Cap.ROUND);
+
     }
 
     @Override
@@ -129,19 +136,27 @@ public class DrawingPad extends SurfaceView {
         //trace the old touch points that were recorded
         for (TraceHistory traceHistory : traceHistoryList) {
             canvas.drawPath(traceHistory.getTracePath(), traceHistory.getTracePaint());
-            canvas.drawCircle(traceHistory.getEstimatedCenter().x,
+            /*canvas.drawCircle(traceHistory.getEstimatedCenter().x,
                     traceHistory.getEstimatedCenter().y, 15,
-                    traceHistory.getLabelPaint());
+                    traceHistory.getLabelTextPaint());*/
             /*canvas.drawLine(traceHistory.getEstimatedCenter().x,
                     traceHistory.getEstimatedCenter().y,
                     traceHistory.getLabelPosition().x,
                     traceHistory.getLabelPosition().y,
-                    traceHistory.getLabelPaint());*/
+                    traceHistory.getLabelTextPaint());*/
 
-            canvas.drawText("污染" + traceHistory.getPollutionCode(),
+            String text = "污染 " + traceHistory.getPollutionCode();
+            int padding = 20;
+            canvas.drawRect(traceHistory.getEstimatedCenter().x - padding,
+                    traceHistory.getEstimatedCenter().y + traceHistory.getLabelTextPaint().getFontMetrics().top - padding,
+                    traceHistory.getEstimatedCenter().x + traceHistory.getLabelTextPaint().measureText(text) + padding,
+                    traceHistory.getEstimatedCenter().y + traceHistory.getLabelTextPaint().getFontMetrics().bottom + padding,
+                    labelTextBackgroundPaint);
+
+            canvas.drawText(text,
                     traceHistory.getEstimatedCenter().x,
                     traceHistory.getEstimatedCenter().y,
-                    traceHistory.getLabelPaint());
+                    traceHistory.getLabelTextPaint());
         }
 
         //trace on the image in real time as the user moves his finger

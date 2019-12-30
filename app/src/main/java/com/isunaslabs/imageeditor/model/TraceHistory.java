@@ -15,7 +15,7 @@ public class TraceHistory {
     private Path tracePath;
     private PointF estimatedCenter;
     private int pollutionCode;
-    private Paint labelPaint;
+    private Paint labelTextPaint;
     private PointF labelPosition;
 
     public TraceHistory(List<PointF> points, Paint tracePaint, int pollutionCode) {
@@ -37,12 +37,16 @@ public class TraceHistory {
     }
 
     private void generateLabelPaint(int pollutionCode) {
-        labelPaint = new Paint();
-        labelPaint.setAntiAlias(true);
-        labelPaint.setStrokeWidth(8);
-        labelPaint.setStyle(Paint.Style.FILL);
-        labelPaint.setColor(Utils.getLabelColor(pollutionCode));
-        labelPaint.setTextSize(Utils.labelTextSize);
+        labelTextPaint = new Paint();
+        labelTextPaint.setAntiAlias(true);
+        labelTextPaint.setStrokeWidth(8);
+        labelTextPaint.setStyle(Paint.Style.FILL);
+        labelTextPaint.setColor(Utils.getLabelColor(pollutionCode));
+        labelTextPaint.setTextSize(Utils.labelTextSize);
+
+        Paint.FontMetrics metrics = new Paint.FontMetrics();
+        labelTextPaint.getFontMetrics(metrics);
+
     }
 
     private void generateTracePath() {
@@ -86,8 +90,8 @@ public class TraceHistory {
         return tracePaint;
     }
 
-    public Paint getLabelPaint() {
-        return labelPaint;
+    public Paint getLabelTextPaint() {
+        return labelTextPaint;
     }
 
     public Path getTracePath() {
