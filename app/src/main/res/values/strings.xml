@@ -4,4 +4,5 @@
     <string name="pollution_two">level 2</string>
     <string name="pollution_three">level 3</string>
     <string name="pollution_four">level 4</string>
+    <string name="delete">delete</string>
 </resources>

@@ -18,6 +18,14 @@
         android:background="#ffffff"/>
 
     <Button
+        android:id="@+id/delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/delete"
+        app:layout_constraintEnd_toEndOf="@id/pollution_four"
+        app:layout_constraintBottom_toBottomOf="@id/drawing_pad"/>
+
+    <Button
         android:id="@+id/pollution_one"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

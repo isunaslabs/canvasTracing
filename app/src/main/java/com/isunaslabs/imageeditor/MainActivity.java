@@ -11,7 +11,10 @@ import com.isunaslabs.imageeditor.customview.DrawingPad;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private DrawingPad drawingPad;
-    private Button pollutionOne,pollutionTwo,pollutionThree,pollutionFour;
+    private Button pollutionOne, pollutionTwo,
+            pollutionThree, pollutionFour,
+            delete;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pollutionTwo = findViewById(R.id.pollution_two);
         pollutionThree = findViewById(R.id.pollution_three);
         pollutionFour = findViewById(R.id.pollution_four);
+        delete = findViewById(R.id.delete);
 
         drawingPad = findViewById(R.id.drawing_pad);
         drawingPad.setImageUrl("https://cdn.pixabay.com/photo/2019/12/08/16/00/nature-4681448_1280.jpg");
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pollutionTwo.setOnClickListener(this);
         pollutionThree.setOnClickListener(this);
         pollutionFour.setOnClickListener(this);
+        delete.setOnClickListener(this);
     }
 
     @Override
@@ -53,6 +58,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.pollution_four:
                 drawingPad.setPollutionCode(4);
+                break;
+            case R.id.delete:
+                drawingPad.deleteLastTracePattern();
                 break;
         }
     }

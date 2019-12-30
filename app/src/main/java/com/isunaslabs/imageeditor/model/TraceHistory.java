@@ -1,5 +1,6 @@
 package com.isunaslabs.imageeditor.model;
 
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -23,7 +24,7 @@ public class TraceHistory {
         this.pollutionCode = pollutionCode;
         generateTracePaint(tracePaint);
         generateTracePath();
-        generateLabelPaint(pollutionCode);
+        generateLabelPaint();
     }
 
     private void generateTracePaint(Paint tracePaint) {
@@ -36,12 +37,12 @@ public class TraceHistory {
         this.tracePaint.setStrokeWidth(tracePaint.getStrokeWidth());
     }
 
-    private void generateLabelPaint(int pollutionCode) {
+    private void generateLabelPaint() {
         labelTextPaint = new Paint();
         labelTextPaint.setAntiAlias(true);
         labelTextPaint.setStrokeWidth(8);
         labelTextPaint.setStyle(Paint.Style.FILL);
-        labelTextPaint.setColor(Utils.getLabelColor(pollutionCode));
+        labelTextPaint.setColor(Color.WHITE);
         labelTextPaint.setTextSize(Utils.labelTextSize);
 
         Paint.FontMetrics metrics = new Paint.FontMetrics();

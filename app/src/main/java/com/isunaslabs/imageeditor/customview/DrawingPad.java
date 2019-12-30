@@ -43,6 +43,7 @@ public class DrawingPad extends SurfaceView {
     private String imageUrl = "";
     private boolean userIsDrawing = false;
     private Paint labelTextBackgroundPaint;
+    private Paint labelTextPaint;
 
 
     public DrawingPad(Context context) {
@@ -62,6 +63,14 @@ public class DrawingPad extends SurfaceView {
 
     public void setPollutionCode(int pollutionCode) {
         this.pollutionCode = pollutionCode;
+    }
+
+    public void deleteLastTracePattern() {
+        if(traceHistoryList.size() == 0) {
+            return;
+        }
+        traceHistoryList.remove(traceHistoryList.size() - 1);
+        postInvalidate();
     }
 
     public void setImageUrl(String imageUrl) {
