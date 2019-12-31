@@ -22,11 +22,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             pollutionThree, pollutionFour,
             delete,done;
     //tall image
-    private String IMAGE_URL = "https://cdn.pixabay.com/photo/2017/03/27/15/17/apartment-2179337_1280.jpg";
+    //private String IMAGE_URL = "https://cdn.pixabay.com/photo/2017/03/27/15/17/apartment-2179337_1280.jpg";
     //wide image
-    //private String IMAGE_URL = "https://cdn.pixabay.com/photo/2019/12/08/16/00/nature-4681448_1280.jpg";
+    private String IMAGE_URL = "https://cdn.pixabay.com/photo/2019/12/08/16/00/nature-4681448_1280.jpg";
 
-    private static int WRITE_PERMISSION_REQUEST_CODE = 200;
+    private static final int WRITE_PERMISSION_REQUEST_CODE = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
