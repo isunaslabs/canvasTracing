@@ -15,9 +15,9 @@ import com.isunaslabs.imageeditor.model.ImageToTrace;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
-    public static int imageWidth = 0;
-    public static int imageHeight = 0;
-    public static float labelTextSize = 0;
+    private static float imageWidth = 0;
+    private static float labelTextSize = 0;
+    private static boolean isImageResizedByWidth = true;
 
 
     public static void hideSystemUI(Activity activity) {
@@ -47,7 +47,8 @@ public class Utils {
 
     public static void loadBitmapFromUrl(final Context context,
                                          final String imgUrl,
-                                         final int screenWidth,
+                                         final int layoutWidth,
+                                         final int layoutHeight,
                                          final BitmapLoadListener bitmapLoadListener) {
 
         labelTextSize = context.getResources().getDimensionPixelSize(R.dimen.label_size);
@@ -61,14 +62,14 @@ public class Utils {
                         .load(imgUrl)
                         .submit();
                 try {
-                    Bitmap resizedBitmap = resizeBitmap(target.get(), screenWidth);
-                    bitmapLoadListener.onBitmapLoaded(new ImageToTrace(resizedBitmap));
+                    Bitmap resizedBitmap = resizeBitmap(target.get(), layoutWidth,layoutHeight);
+                    bitmapLoadListener.onBitmapLoaded(new ImageToTrace(resizedBitmap),isImageResizedByWidth);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
-                    bitmapLoadListener.onBitmapLoaded(null);
+                    bitmapLoadListener.onBitmapLoaded(null,isImageResizedByWidth);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    bitmapLoadListener.onBitmapLoaded(null);
+                    bitmapLoadListener.onBitmapLoaded(null,isImageResizedByWidth);
                 }
             }
         };
@@ -76,14 +77,29 @@ public class Utils {
     }
 
 
-    private static Bitmap resizeBitmap(Bitmap bitmap, int desiredWidth) {
+    private static Bitmap resizeBitmap(Bitmap bitmap, int layoutWidth,int layoutHeight) {
         int originalWidth = bitmap.getWidth();
         int originalHeight = bitmap.getHeight();
-        float ratio = originalWidth * 1f / originalHeight * 1f;
-        int newHeight = (int) (desiredWidth / ratio);
-        imageWidth = desiredWidth;
-        imageHeight = newHeight;
-        return Bitmap.createScaledBitmap(bitmap, desiredWidth, newHeight, false);
+        float imageRatio = originalWidth * 1f / originalHeight * 1f;
+        float layoutRatio = layoutWidth / layoutHeight;
+
+        float newImageWidth = 0;
+        float newImageHeight = 0;
+        //determine how to resize the image
+        if(layoutRatio < imageRatio) {
+            //wide image,resize by width
+            newImageWidth = layoutWidth;
+            newImageHeight = newImageWidth / imageRatio;
+            isImageResizedByWidth = true;
+        }else {
+            //tall image,resize by height
+            newImageHeight = layoutHeight;
+            newImageWidth = newImageHeight * imageRatio;
+            isImageResizedByWidth = false;
+        }
+        imageWidth = newImageWidth;
+
+        return Bitmap.createScaledBitmap(bitmap, (int) newImageWidth, (int) newImageHeight, false);
     }
 
     public static int getLabelColor(int pollutionCode) {
@@ -102,8 +118,14 @@ public class Utils {
 
 
     public interface BitmapLoadListener {
-        void onBitmapLoaded(ImageToTrace deviceImage);
+        void onBitmapLoaded(ImageToTrace deviceImage,boolean isResizedByWidth);
     }
 
+    public static float getImageWidth() {
+        return imageWidth;
+    }
 
+    public static float getLabelTextSize() {
+        return labelTextSize;
+    }
 }

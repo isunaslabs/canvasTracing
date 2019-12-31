@@ -1,15 +1,20 @@
 package com.isunaslabs.imageeditor.customview;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.os.Build;
+import android.os.Environment;
+import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
@@ -17,6 +22,11 @@ import com.isunaslabs.imageeditor.Utils;
 import com.isunaslabs.imageeditor.model.ImageToTrace;
 import com.isunaslabs.imageeditor.model.TraceHistory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +44,9 @@ public class DrawingPad extends SurfaceView {
     private Paint tracePaint;
     private Paint maskPaint;
     private int maskHeight;
+    private int maskWidth;
     private int imageHeight;
+    private int imageWidth;
     private List<PointF> recentDrawnPoints;
     private List<TraceHistory> traceHistoryList = new ArrayList<>();
     private int imageXPosition = 0;
@@ -44,6 +56,7 @@ public class DrawingPad extends SurfaceView {
     private boolean userIsDrawing = false;
     private Paint labelTextBackgroundPaint;
     private Paint labelTextPaint;
+    private boolean isImageResizedByWidth = false;
 
 
     public DrawingPad(Context context) {
@@ -66,7 +79,7 @@ public class DrawingPad extends SurfaceView {
     }
 
     public void deleteLastTracePattern() {
-        if(traceHistoryList.size() == 0) {
+        if (traceHistoryList.size() == 0) {
             return;
         }
         traceHistoryList.remove(traceHistoryList.size() - 1);
@@ -95,7 +108,7 @@ public class DrawingPad extends SurfaceView {
 
         maskPaint = new Paint();
         maskPaint.setAntiAlias(true);
-        maskPaint.setColor(Color.BLACK);
+        maskPaint.setColor(Color.GREEN);
 
         labelTextBackgroundPaint = new Paint();
         labelTextBackgroundPaint.setAntiAlias(true);
@@ -116,17 +129,27 @@ public class DrawingPad extends SurfaceView {
         to get the layout height for vertically centering the image*/
         Utils.loadBitmapFromUrl(
                 getContext().getApplicationContext(),
-                this.imageUrl, layoutWidth, new Utils.BitmapLoadListener() {
+                this.imageUrl, layoutWidth, layoutHeight, new Utils.BitmapLoadListener() {
                     @Override
-                    public void onBitmapLoaded(ImageToTrace image) {
+                    public void onBitmapLoaded(ImageToTrace image, boolean isResizedByWidth) {
                         imageToTrace = image;
-                        /*get a Y point that would center the image
-                        vertically on the screen*/
-                        if (imageToTrace.getImageBitmap().getHeight() < layoutHeight) {
-                            imageHeight = imageToTrace.getImageBitmap().getHeight();
+                        isImageResizedByWidth = isResizedByWidth;
+                        imageHeight = imageToTrace.getImageBitmap().getHeight();
+                        imageWidth = imageToTrace.getImageBitmap().getWidth();
+                        if (isResizedByWidth) {
+                            /*get a Y point that would center the image
+                            vertically on the screen*/
                             maskHeight = (layoutHeight - imageHeight) / 2;
                             imageYPosition = maskHeight;
+                            imageXPosition = 0;
+                        } else {
+                            /*get an X point that would center the image
+                            horizontally on the screen*/
+                            maskWidth = (layoutWidth - imageWidth) / 2;
+                            imageXPosition = maskWidth;
+                            imageYPosition = 0;
                         }
+
                         postInvalidate();
                     }
                 });
@@ -135,6 +158,7 @@ public class DrawingPad extends SurfaceView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        Log.d(TAG, "takeScreenshot: imechora tena");
         canvas.drawARGB(255, 255, 255, 255);
 
         if (imageToTrace != null) {
@@ -173,11 +197,44 @@ public class DrawingPad extends SurfaceView {
             canvas.drawPath(tracingPath, tracePaint);
         }
 
-        /*draw top and bottom masks*/
-        canvas.drawRect(0, 0, layoutWidth, maskHeight, maskPaint);
-        canvas.drawRect(0, imageYPosition + imageHeight, layoutWidth,
-                imageYPosition + imageHeight + maskHeight, maskPaint);
+        drawMasks(canvas);
 
+    }
+
+    private void drawMasks(Canvas canvas) {
+        if (isImageResizedByWidth) {
+            /*draw top and bottom masks*/
+            int topMaskTopPoint = 0;
+            int topMaskLeftPoint = 0;
+            int topMaskRightPoint = topMaskLeftPoint + imageWidth;
+            int topMaskBottomPoint = topMaskTopPoint + maskHeight;
+            canvas.drawRect(topMaskLeftPoint, topMaskTopPoint,
+                    topMaskRightPoint, topMaskBottomPoint, maskPaint);
+
+
+            int bottomMaskTopPoint = maskHeight + imageHeight;
+            int bottomMaskLeftPoint = 0;
+            int bottomMaskRightPoint = bottomMaskLeftPoint + imageWidth;
+            int bottomMaskBottomPoint = bottomMaskTopPoint + maskHeight;
+            canvas.drawRect(bottomMaskLeftPoint, bottomMaskTopPoint,
+                    bottomMaskRightPoint, bottomMaskBottomPoint, maskPaint);
+        } else {
+            /*draw left and right masks*/
+            int leftMaskTopPoint = 0;
+            int leftMaskLeftPoint = 0;
+            int leftMaskRightPoint = leftMaskLeftPoint + maskWidth;
+            int leftMaskBottomPoint = leftMaskTopPoint + maskHeight;
+            canvas.drawRect(leftMaskLeftPoint, leftMaskTopPoint,
+                    leftMaskRightPoint, leftMaskBottomPoint, maskPaint);
+
+
+            int rightMaskTopPoint = 0;
+            int rightMaskLeftPoint = maskWidth + imageWidth;
+            int rightMaskRightPoint = rightMaskLeftPoint + maskWidth;
+            int rightMaskBottomPoint = rightMaskTopPoint + maskHeight;
+            canvas.drawRect(rightMaskLeftPoint, rightMaskTopPoint,
+                    rightMaskRightPoint, rightMaskBottomPoint, maskPaint);
+        }
     }
 
 
@@ -221,4 +278,46 @@ public class DrawingPad extends SurfaceView {
     public boolean performClick() {
         return super.performClick();
     }
+
+    public void takeScreenshot() {
+
+
+        final Handler handler = new Handler();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                final Bitmap bitmap = Bitmap.createBitmap(getWidth(),getHeight(), Bitmap.Config.ARGB_8888);
+                final Canvas canvas = new Canvas(bitmap);
+                Log.d(TAG, "takeAScreenshot: ");
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        draw(canvas);
+
+                        String filePath = Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpeg";
+                        File newFile = new File(filePath);
+                        try {
+                            OutputStream outputStream = new FileOutputStream(newFile);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+
+                            outputStream.flush();
+                            outputStream.close();
+                            Toast.makeText(getContext(), "Screenshot taken", Toast.LENGTH_SHORT).show();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                });
+            }
+        });
+
+        thread.start();
+    }
+
+
 }

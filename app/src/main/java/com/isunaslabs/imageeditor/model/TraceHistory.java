@@ -24,7 +24,7 @@ public class TraceHistory {
         this.pollutionCode = pollutionCode;
         generateTracePaint(tracePaint);
         generateTracePath();
-        generateLabelPaint();
+        generateLabelTextPaint();
     }
 
     private void generateTracePaint(Paint tracePaint) {
@@ -37,13 +37,13 @@ public class TraceHistory {
         this.tracePaint.setStrokeWidth(tracePaint.getStrokeWidth());
     }
 
-    private void generateLabelPaint() {
+    private void generateLabelTextPaint() {
         labelTextPaint = new Paint();
         labelTextPaint.setAntiAlias(true);
         labelTextPaint.setStrokeWidth(8);
         labelTextPaint.setStyle(Paint.Style.FILL);
         labelTextPaint.setColor(Color.WHITE);
-        labelTextPaint.setTextSize(Utils.labelTextSize);
+        labelTextPaint.setTextSize(Utils.getLabelTextSize());
 
         Paint.FontMetrics metrics = new Paint.FontMetrics();
         labelTextPaint.getFontMetrics(metrics);
@@ -74,7 +74,7 @@ public class TraceHistory {
 
         //evaluate where to direction of the label
         /*Utils.imageWidth is equal to the layout width*/
-        if(bounds.right > Utils.imageWidth / 2f) {
+        if(bounds.right > Utils.getImageWidth() / 2f) {
             labelPosition.x = bounds.left - 20;
         }else {
             labelPosition.x = bounds.right + 20;

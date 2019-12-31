@@ -22,6 +22,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/delete"
+        app:layout_constraintEnd_toStartOf="@id/done"
+        android:layout_marginEnd="@dimen/margin_1"
+        app:layout_constraintBottom_toBottomOf="@id/drawing_pad"/>
+
+    <Button
+        android:id="@+id/done"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/done"
         app:layout_constraintEnd_toEndOf="@id/pollution_four"
         app:layout_constraintBottom_toBottomOf="@id/drawing_pad"/>
 
