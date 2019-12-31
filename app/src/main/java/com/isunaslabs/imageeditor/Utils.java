@@ -3,15 +3,24 @@ package com.isunaslabs.imageeditor;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.FutureTarget;
+import com.isunaslabs.imageeditor.customview.DrawingPad;
 import com.isunaslabs.imageeditor.model.ImageToTrace;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
@@ -128,4 +137,101 @@ public class Utils {
     public static float getLabelTextSize() {
         return labelTextSize;
     }
+
+    public static void takeScreenshot(
+            final Bitmap fullScreenBitmap,
+            final int imageXPosition,
+            final int imageYPosition,
+            final int imageWidth,
+            final int imageHeight,
+            final DrawingPad.CropListener listener) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                String tempFilePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".jpeg";
+                File tempFile = new File(tempFilePath);
+                try {
+                    OutputStream outputStream = new FileOutputStream(tempFile);
+                    fullScreenBitmap.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            100, outputStream);
+
+                    outputStream.flush();
+                    outputStream.close();
+                    cropImage(tempFile,imageXPosition,
+                            imageYPosition,imageWidth,
+                            imageHeight,listener);
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    if (listener!= null) {
+                        listener.onError(e);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    if (listener!= null) {
+                        listener.onError(e);
+                    }
+                }
+            }
+        });
+
+        thread.start();
+    }
+
+    private static void cropImage(final File imageFile,
+                                  final int imageXPosition,
+                                  final int imageYPosition,
+                                  final int imageWidth,
+                                  final int imageHeight,
+                                  final DrawingPad.CropListener listener) {
+        Thread myThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap bitmapToCrop = BitmapFactory.decodeFile(imageFile.getPath());
+
+                int weirdPixelsFix = 5;
+                Bitmap croppedImage = Bitmap.createBitmap(bitmapToCrop,
+                        imageXPosition+weirdPixelsFix,
+                        imageYPosition+weirdPixelsFix,
+                        imageWidth-weirdPixelsFix,
+                        imageHeight-weirdPixelsFix);
+
+                String filePath = Environment.getExternalStorageDirectory() +
+                        File.separator + System.currentTimeMillis() +
+                        "-zn-" + ".jpeg";
+                File newFile = new File(filePath);
+
+                OutputStream outputStream = null;
+                try {
+                    outputStream = new FileOutputStream(newFile);
+                    croppedImage.compress(Bitmap.CompressFormat.JPEG,
+                            100, outputStream);
+
+                    outputStream.flush();
+                    outputStream.close();
+                    if(imageFile.exists()) {
+                        imageFile.delete();
+                    }
+                    if (listener!= null) {
+                        listener.onCropSuccessful(newFile);
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    if (listener!= null) {
+                        listener.onError(e);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    if (listener!= null) {
+                        listener.onError(e);
+                    }
+                }
+            }
+        });
+        myThread.start();
+    }
+
+
 }

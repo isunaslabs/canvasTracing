@@ -2,15 +2,12 @@ package com.isunaslabs.imageeditor.customview;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -19,17 +16,12 @@ import android.view.SurfaceView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.core.content.FileProvider;
 
 import com.isunaslabs.imageeditor.Utils;
 import com.isunaslabs.imageeditor.model.ImageToTrace;
 import com.isunaslabs.imageeditor.model.TraceHistory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +29,8 @@ public class DrawingPad extends SurfaceView {
 
     private static final String TAG = "DrawingPad";
     private static int STROKE_WIDTH = 15;
-    private static int STROKE_COLOR = Color.argb(255, 75, 200, 255);
+    private static int STROKE_COLOR = Color.argb(255,
+            75, 200, 255);
 
 
     private ImageToTrace imageToTrace;
@@ -58,9 +51,8 @@ public class DrawingPad extends SurfaceView {
     private String imageUrl = "";
     private boolean userIsDrawing = false;
     private Paint labelTextBackgroundPaint;
-    private Paint labelTextPaint;
     private boolean isImageResizedByWidth = false;
-    private DrawingPadListener listener;
+    private DrawingPadListener drawingPadListener;
 
 
     public DrawingPad(Context context) {
@@ -101,8 +93,8 @@ public class DrawingPad extends SurfaceView {
         initView();
     }
 
-    public void setListener(DrawingPadListener listener) {
-        this.listener = listener;
+    public void setDrawingPadListenerListener(DrawingPadListener listener) {
+        this.drawingPadListener = listener;
     }
 
     private void initView() {
@@ -116,7 +108,7 @@ public class DrawingPad extends SurfaceView {
 
         maskPaint = new Paint();
         maskPaint.setAntiAlias(true);
-        maskPaint.setColor(Color.GREEN);
+        maskPaint.setColor(Color.BLACK);
 
         labelTextBackgroundPaint = new Paint();
         labelTextBackgroundPaint.setAntiAlias(true);
@@ -296,33 +288,35 @@ public class DrawingPad extends SurfaceView {
 
                 final Bitmap bitmap = Bitmap.createBitmap(getWidth(),getHeight(), Bitmap.Config.ARGB_8888);
                 final Canvas canvas = new Canvas(bitmap);
-                Log.d(TAG, "takeAScreenshot: ");
                 draw(canvas);
 
-                String filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".jpeg";
-                File newFile = new File(filePath);
-                try {
-                    OutputStream outputStream = new FileOutputStream(newFile);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                Utils.takeScreenshot(bitmap,
+                        imageXPosition, imageYPosition,
+                        imageWidth, imageHeight, new CropListener() {
+                            @Override
+                            public void onCropSuccessful(File file) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getContext(),
+                                                "Screenshot taken",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
 
-                    outputStream.flush();
-                    outputStream.close();
-                    Log.d(TAG, "run: ismail b4 crop "+Thread.currentThread().getName());
-                    cropImage(newFile);
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "Screenshot taken", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                            @Override
+                            public void onError(Exception e) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getContext(),
+                                                "Failed to tale screenshot",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        });
             }
         });
 
@@ -330,52 +324,13 @@ public class DrawingPad extends SurfaceView {
     }
 
 
-
-    private void cropImage(final File file) {
-
-        Thread myThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Bitmap bitmapToCrop = BitmapFactory.decodeFile(file.getPath());
-
-                int weirdPixelsFix = 5;
-                Bitmap croppedImage = Bitmap.createBitmap(bitmapToCrop,
-                        imageXPosition+weirdPixelsFix,
-                        imageYPosition+weirdPixelsFix,
-                        imageWidth-weirdPixelsFix,
-                        imageHeight-weirdPixelsFix);
-
-                String filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis()+"-isu-" + ".jpeg";
-                File newFile = new File(filePath);
-
-                OutputStream outputStream = null;
-                try {
-                    outputStream = new FileOutputStream(newFile);
-                    croppedImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-
-                    outputStream.flush();
-                    outputStream.close();
-                    if(file.exists()) {
-                        file.delete();
-                    }
-                    Log.d(TAG, "run: ismail file cropped "+Thread.currentThread().getName());
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        myThread.start();
-
-
-    }
-
-
-
-
     public interface DrawingPadListener {
         void onScreenshotTaken(File file);
+    }
+
+    public interface CropListener {
+        void onCropSuccessful(File file);
+        void onError(Exception e);
     }
 
 
